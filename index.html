@@ -61,7 +61,7 @@ td{padding:10px 12px;border-bottom:1px solid var(--border)}tr:hover td{backgroun
 <a onclick="showTab('ads',this)"><span>🎬</span> 유튜브 영상</a>
 </nav>
 <div class="mn">
-<div class="tb"><h1>한국 모바일 게임 대시보드</h1><div class="mt">2026-07-01 15:53</div></div>
+<div class="tb"><h1>한국 모바일 게임 대시보드</h1><div class="mt">2026-07-01 19:55</div></div>
 
 <div id="tab-rank" class="tc on">
 <div class="kps">
@@ -211,7 +211,7 @@ function renderInf(q){
   s.forEach(function(inf,i){
     var tv=(inf.recent_videos||[]).reduce(function(s,v){return s+(v.views||0)},0);
     var tr=document.createElement('tr');
-    var chUrl = inf.channel_url || (inf.platform==='YouTube' ? 'https://www.youtube.com/@'+encodeURIComponent(inf.channel_name.replace(/\s/g,'')) : inf.platform==='Twitch' ? 'https://www.twitch.tv/'+encodeURIComponent(inf.channel_name.replace(/\s/g,'')) : inf.platform==='AfreecaTV' ? 'https://play.sooplive.co.kr/'+inf.channel_name.replace(/\s/g,'') : '');
+    var chUrl = inf.channel_url || (inf.platform==='YouTube' ? 'https://www.youtube.com/@'+encodeURIComponent(inf.channel_name.replace(/\s/g,'')) : '');
     tr.innerHTML='<td>'+(i+1)+'</td><td>'+(chUrl?'<a href="'+chUrl+'" target="_blank" class="gl">'+inf.channel_name+'</a>':inf.channel_name)+'</td><td>'+(inf.platform||'—')+'</td><td>'+(inf.category||'기타')+'</td><td>'+(inf.followers||0).toLocaleString()+'</td><td>'+(inf.live_viewers||0).toLocaleString()+'</td><td>'+(inf.recent_videos||[]).length+'</td><td>'+tv.toLocaleString()+'</td>';
     tb.appendChild(tr);
   });
@@ -335,7 +335,7 @@ function renderAds(){
     h+='<div style="margin-bottom:20px"><h3 style="margin-bottom:8px">'+g.name+' <span style="color:var(--t2);font-size:12px">('+g.sponsor_count+'영상, 조회 '+g.sponsor_total_views.toLocaleString()+')</span></h3>';
     (g.sponsor_videos||[]).forEach(function(v){
       var ud=v.uploaded?'<br><span style="color:var(--t2);font-size:11px">'+v.uploaded+'</span>':'';
-      h+='<div class="vi"><span class="vt"><a href="https://youtube.com/watch?v='+v.id+'" target="_blank">'+v.title+'</a><br><span style="color:var(--t2);font-size:11px">'+v.channel+'</span>'+ud+'</span><span class="vs">조회 '+(v.views||0).toLocaleString()+'<br>좋아요 '+(v.likes||0).toLocaleString()+'</span></div>';
+      h+='<div class="vi"><span class="vt"><a href="'+v.url+'" target="_blank">'+v.title+'</a><br><span style="color:var(--t2);font-size:11px">'+v.channel+'</span>'+ud+'</span><span class="vs">조회 '+(v.views||0).toLocaleString()+'<br>좋아요 '+(v.likes||0).toLocaleString()+'</span></div>';
     });
     h+='</div>';
   });
@@ -385,7 +385,7 @@ function openModal(idx){
   if(g.sponsor_videos&&g.sponsor_videos.length){
     g.sponsor_videos.forEach(function(v){
       var ud=v.uploaded?'<br><span style="color:var(--t2);font-size:11px">'+v.uploaded+'</span>':'';
-      mh+='<div class="vi"><span class="vt"><a href="https://youtube.com/watch?v='+v.id+'" target="_blank">'+v.title+'</a><br><span style="color:var(--t2);font-size:11px">'+v.channel+'</span>'+ud+'</span><span class="vs">조회 '+(v.views||0).toLocaleString()+'<br>좋아요 '+(v.likes||0).toLocaleString()+'</span></div>';
+      mh+='<div class="vi"><span class="vt"><a href="'+v.url+'" target="_blank">'+v.title+'</a><br><span style="color:var(--t2);font-size:11px">'+v.channel+'</span>'+ud+'</span><span class="vs">조회 '+(v.views||0).toLocaleString()+'<br>좋아요 '+(v.likes||0).toLocaleString()+'</span></div>';
     });
   }else{
     mh='<p style="color:var(--t2);font-size:12px">수집된 영상 없음</p>';
