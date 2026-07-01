@@ -211,7 +211,7 @@ function renderInf(q){
   s.forEach(function(inf,i){
     var tv=(inf.recent_videos||[]).reduce(function(s,v){return s+(v.views||0)},0);
     var tr=document.createElement('tr');
-    var chUrl = inf.channel_url || (inf.platform==='YouTube' ? 'https://www.youtube.com/@'+encodeURIComponent(inf.channel_name.replace(/\s/g,'')) : '');
+    var chUrl = inf.channel_url || (inf.platform==='YouTube' ? 'https://www.youtube.com/@'+encodeURIComponent(inf.channel_name.replace(/\s/g,'')) : inf.platform==='Twitch' ? 'https://www.twitch.tv/'+encodeURIComponent(inf.channel_name.replace(/\s/g,'')) : inf.platform==='AfreecaTV' ? 'https://play.sooplive.co.kr/'+inf.channel_name.replace(/\s/g,'') : '');
     tr.innerHTML='<td>'+(i+1)+'</td><td>'+(chUrl?'<a href="'+chUrl+'" target="_blank" class="gl">'+inf.channel_name+'</a>':inf.channel_name)+'</td><td>'+(inf.platform||'—')+'</td><td>'+(inf.category||'기타')+'</td><td>'+(inf.followers||0).toLocaleString()+'</td><td>'+(inf.live_viewers||0).toLocaleString()+'</td><td>'+(inf.recent_videos||[]).length+'</td><td>'+tv.toLocaleString()+'</td>';
     tb.appendChild(tr);
   });
