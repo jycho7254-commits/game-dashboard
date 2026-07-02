@@ -63,10 +63,9 @@ td{padding:10px 12px;border-bottom:1px solid var(--border)}tr:hover td{backgroun
 <a onclick="showTab('mkt',this)"><span>📢</span> 마케팅</a>
 <a onclick="showTab('cal',this)"><span>📅</span> 캘린더</a>
 <a onclick="showTab('nws',this)"><span>📰</span> 뉴스</a>
-<a onclick="showTab('search',this)"><span>🔍</span> 게임 검색</a>
 </nav>
 <div class="mn">
-<div class="tb"><h1>한국 모바일 게임 대시보드</h1><div class="mt">2026-07-02 10:29</div></div>
+<div class="tb"><h1>한국 모바일 게임 대시보드</h1><div class="mt">2026-07-02 12:16</div></div>
 
 <div id="tab-rank" class="tc on">
 <div class="kps">
@@ -90,9 +89,14 @@ td{padding:10px 12px;border-bottom:1px solid var(--border)}tr:hover td{backgroun
 </div>
 
 <div id="tab-sent" class="tc">
-<div class="wb i">📊 <b>실시간 커뮤니티 크롤링 데이터</b> — DC인사이드 갤러리에서 수집</div>
-<div class="st">💬 게임별 커뮤니티 여론</div>
-<div id="sc"></div>
+<div id="gs-wrap" style="max-width:500px;margin:80px auto 40px;text-align:center">
+<div style="margin-bottom:16px"><span style="font-size:20px">🔍</span> <b style="font-size:18px">게임 검색</b></div>
+<div style="display:flex;gap:8px">
+<input id="gsi" placeholder="게임명 검색 (예: 오딘, 리니지M)" style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--t1);font-size:14px;outline:none" onkeydown="if(event.key==='Enter')searchGame()">
+<button onclick="searchGame()" style="padding:10px 20px;border-radius:8px;border:none;background:var(--blue);color:#fff;cursor:pointer;font-size:14px;white-space:nowrap">검색</button>
+</div>
+</div>
+<div id="gc"></div>
 </div>
 
 <div id="tab-rev" class="tc">
@@ -144,18 +148,6 @@ td{padding:10px 12px;border-bottom:1px solid var(--border)}tr:hover td{backgroun
 <div class="st">📰 게임 뉴스</div>
 <div id="ns"></div>
 </div>
-</div>
-
-<div id="tab-search" class="tc">
-<div class="st">🔍 게임 검색</div>
-<div class="ct" style="gap:12px">
-<input id="gs" class="si" style="width:300px" placeholder="게임명 입력..." oninput="onGameSearch(this.value)" list="gl">
-<datalist id="gl"></datalist>
-<input id="ds" class="si" style="width:200px" placeholder="개발사 (선택)" list="dl">
-<datalist id="dl"></datalist>
-<button class="ch" onclick="searchGame()">검색</button>
-</div>
-<div id="gr"></div>
 </div>
 
 <div class="mo" id="mo" onclick="if(event.target===this)closeModal()">
@@ -262,39 +254,43 @@ function renderInf(q){
   });
 }
 
-// ── Sentiment ──
-function renderSent(){
-  var el=document.getElementById('sc');
-  var keys=Object.keys(S);
-  if(!keys.length){
-    el.innerHTML='<p style="color:var(--t2)">수집된 여론 데이터가 없습니다.</p>';
+// ── Game Search ──
+function searchGame(){
+  var q=document.getElementById('gsi').value.trim().toLowerCase();
+  var wrap=document.getElementById('gs-wrap');
+  var gc=document.getElementById('gc');
+  if(!q){wrap.style.margin='80px auto 40px';gc.innerHTML='';return;}
+  // 검색창을 맨 위로
+  wrap.style.margin='0 auto 20px';
+  // GJ에서 name/dev/pub 부분매칭 필터링
+  var results=G.filter(function(g){
+    return (g.name||'').toLowerCase().indexOf(q)>=0
+      || (g.developer||'').toLowerCase().indexOf(q)>=0
+      || (g.publisher||'').toLowerCase().indexOf(q)>=0;
+  });
+  if(!results.length){
+    gc.innerHTML='<p style="color:var(--t2);text-align:center;padding:40px">검색 결과가 없습니다</p>';
     return;
   }
   var h='';
-  keys.forEach(function(gm){
-    var d=S[gm];
-    h+='<div style="margin-bottom:24px"><h3 style="margin-bottom:8px">'+gm+'</h3>';
-    if(d.gallery_url){
-      h+='<div style="margin-bottom:8px"><a href="'+d.gallery_url+'" target="_blank" style="font-size:11px;color:var(--cyan);text-decoration:none">🔗 DC 갤러리 보기 ('+d.gallery_id+')</a></div>';
-    }
-    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:12px">';
-    h+='<div class="kp"><div class="l">게시글</div><div class="v">'+(d.total_posts||0)+'</div></div>';
-    h+='<div class="kp"><div class="l">긍정</div><div class="v" style="color:var(--green)">'+(d.positive_pct||0)+'%</div></div>';
-    h+='<div class="kp"><div class="l">부정</div><div class="v" style="color:var(--red)">'+(d.negative_pct||0)+'%</div></div>';
-    h+='<div class="kp"><div class="l">중립</div><div class="v" style="color:var(--t2)">'+(d.neutral_pct||0)+'%</div></div></div>';
-    h+='<div class="sb2"><div class="p" style="width:'+(d.positive_pct||0)+'%"></div><div class="n" style="width:'+(d.negative_pct||0)+'%"></div><div class="u" style="width:'+(d.neutral_pct||100)+'%"></div></div>';
-    if(d.top_posts&&d.top_posts.length){
-      h+='<div style="margin-top:12px">';
-      d.top_posts.slice(0,5).forEach(function(p){
-        var pl = p.url ? '<a href="'+p.url+'" target="_blank" style="color:var(--link);text-decoration:none">'+p.title+'</a>' : p.title;
-        h+='<div style="padding:8px;background:var(--bg2);border-radius:6px;margin-bottom:6px;font-size:12px"><span style="color:var(--t2)">['+(p.recommend||0)+'추]</span> '+pl+'</div>';
-      });
-      h+='</div>';
-    }
+  results.forEach(function(g){
+    var pkg=g.package||'';
+    var link=pkg?'https://play.google.com/store/apps/details?id='+pkg:'#';
+    var rc=g.rating>=4.5?'rh':g.rating>=4.0?'rm':g.rating>=3.5?'ro':'rb';
+    h+='<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;cursor:pointer"'+(pkg?' onclick="window.open(\''+link+'\',\'_blank\')"':'')+'>';
+    if(g.icon)h+='<img src="'+g.icon+'" style="width:48px;height:48px;border-radius:10px;flex-shrink:0">';
+    h+='<div style="flex:1;min-width:0">';
+    h+='<div style="font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+g.name+'</div>';
+    h+='<div style="font-size:12px;color:var(--t2);margin-top:2px">'+g.developer+' · '+g.publisher+'</div>';
+    h+='<div style="font-size:12px;color:var(--t2);margin-top:2px">'+g.category+(pkg?'<span style="margin-left:8px;color:var(--link);font-size:11px">▶ Google Play</span>':'')+'</div>';
+    h+='</div>';
+    h+='<div style="text-align:right;flex-shrink:0"><div class="'+rc+'" style="font-size:16px;font-weight:700">⭐ '+g.rating.toFixed(2)+'</div>';
+    h+='<div style="font-size:11px;color:var(--t2);margin-top:2px">#'+g.rank+'</div></div>';
     h+='</div>';
   });
-  el.innerHTML=h;
+  gc.innerHTML=h;
 }
+function renderSent(){}
 
 // ── Revenue Chart ──
 var rvc=null;
@@ -599,91 +595,5 @@ function closeModal(){
   document.getElementById('mo').classList.remove('sh');
   document.body.style.overflow='';
 }
-
-// ===== GAME SEARCH =====
-function onGameSearch(v){document.getElementById('gr').innerHTML='';var sel=G.filter(function(g){return g.name.toLowerCase().indexOf(v.toLowerCase())>=0});var dl=document.getElementById('gl');dl.innerHTML=sel.map(function(g){return '<option value="'+g.name.replace(/"/g,'&quot;')+'">'+g.name+'</option>'}).join('');}
-
-function searchGame(){
-  var name=document.getElementById('gs').value.trim();
-  var dev=document.getElementById('ds').value.trim().toLowerCase();
-  if(!name)return;
-  
-  var match=G.filter(function(g){return g.name.toLowerCase().indexOf(name.toLowerCase())>=0});
-  if(dev)match=match.filter(function(g){return(g.company||'').toLowerCase().indexOf(dev)>=0||(g.publisher||'').toLowerCase().indexOf(dev)>=0});
-  
-  if(match.length===0){document.getElementById('gr').innerHTML='<p style="color:var(--t2);padding:20px">검색 결과 없음</p>';return;}
-  
-  var g=match[0];
-  var tl=T[g.name]||[];
-  
-  var h='<div class="kps">';
-  h+='<div class="kp"><div class="l">순위</div><div class="v">#'+g.rank+'</div><div class="s">Google Play</div></div>';
-  h+='<div class="kp"><div class="l">개발사</div><div class="v" style="font-size:16px">'+g.company+'</div></div>';
-  h+='<div class="kp"><div class="l">퍼블리셔</div><div class="v" style="font-size:16px">'+(g.publisher||'-')+'</div></div>';
-  h+='<div class="kp"><div class="l">장르</div><div class="v">'+g.category+'</div></div>';
-  h+='<div class="kp"><div class="l">평점</div><div class="v">'+g.rating.toFixed(1)+'</div></div>';
-  h+='<div class="kp"><div class="l">설치수</div><div class="v">'+(g.installs||'—')+'</div></div>';
-  h+='<div class="kp"><div class="l">출시일</div><div class="v" style="font-size:13px">'+(g.released||'—')+'</div></div>';
-  h+='<div class="kp"><div class="l">최근 업데이트</div><div class="v" style="font-size:13px">'+(g.updated||'—')+'</div></div>';
-  h+='<div class="kp"><div class="l">버전</div><div class="v" style="font-size:13px">'+(g.version||'—')+'</div></div>';
-  h+='<div class="kp"><div class="l">연령등급</div><div class="v" style="font-size:13px">'+(g.content_rating||'—')+'</div></div>';
-  if(g.url)h+='<div class="kp"><div class="l">스토어</div><div class="v" style="font-size:11px;word-break:break-all"><a href="'+g.url+'" target=_blank class=gl>Google Play 링크</a></div></div>';
-  if(g.website)h+='<div class="kp"><div class="l">공식 사이트</div><div class="v" style="font-size:11px;word-break:break-all"><a href="'+g.website+'" target=_blank class=gl>바로가기</a></div></div>';
-  h+='</div>';
-  
-  // Summary
-  if(g.summary)h+='<div style="background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--t2);line-height:1.6">📝 '+(g.summary||'')+'</div>';
-  
-  // Revenue chart
-  if(tl.length>0){
-    var rdays=tl.map(function(x){return x.date});
-    var rdata=tl.map(function(x){return x.rank>50?null:x.rank});
-    var best=Math.min.apply(null,rdata.filter(function(v){return v}));
-    var worst=Math.max.apply(null,rdata.filter(function(v){return v}));
-    var avg=Math.round(rdata.filter(function(v){return v}).reduce(function(a,b){return a+b},0)/rdata.filter(function(v){return v}).length);
-    h+='<div class="st" style="margin-top:20px">📈 매출 순위 추이 (최고#'+best+'/최저#'+worst+'/평균#'+avg+')</div><div class="cbox" style="height:200px"><canvas id="scChart"></canvas></div>';
-  }
-  
-  // Sponsors
-  if(g.sponsor_videos&&g.sponsor_videos.length>0){
-    h+='<div class="st" style="margin-top:16px">🎬 유튜브 영상 ('+g.sponsor_videos.length+'개)</div>';
-    g.sponsor_videos.slice(0,8).forEach(function(v){
-      var ud=v.uploaded?'<span style="color:var(--t2);font-size:10px"> '+v.uploaded+'</span>':'';
-      h+='<div style="background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;font-size:12px"><div style="font-weight:600">'+v.channel+'</div><a href="'+v.url+'" target=_blank style="color:var(--blue);font-size:12px">'+v.title+'</a><div style="color:var(--t2);margin-top:2px">조회 '+fmtN(v.views)+' · 좋아요 '+fmtN(v.likes)+ud+'</div></div>';
-    });
-  }
-  
-  // Sentiment
-  if(g.sentiment){
-    var sd=g.sentiment;
-    h+='<div class="st" style="margin-top:16px">💬 커뮤니티 여론</div>';
-    h+='<div class="kps"><div class="kp"><div class="l">게시글</div><div class="v">'+(sd.total_posts||0)+'</div></div>';
-    h+='<div class="kp"><div class="l">긍정</div><div class="v" style="color:var(--green)">'+(sd.positive_pct||0)+'%</div></div>';
-    h+='<div class="kp"><div class="l">부정</div><div class="v" style="color:var(--red)">'+(sd.negative_pct||0)+'%</div></div>';
-    h+='<div class="kp"><div class="l">중립</div><div class="v">'+(sd.neutral_pct||0)+'%</div></div></div>';
-    h+='<div class="sb2"><div class="p" style="width:'+(sd.positive_pct||0)+'%"></div><div class="n" style="width:'+(sd.negative_pct||0)+'%"></div><div class="u" style="width:'+(sd.neutral_pct||100)+'%"></div></div>';
-    if(S[g.name]&&S[g.name].gallery_url)h+='<div style="margin-top:8px;font-size:12px">🔗 <a href="'+S[g.name].gallery_url+'" target=_blank class=gl>DC 갤러리 보기</a></div>';
-  }
-  
-  document.getElementById('gr').innerHTML=h;
-  
-  // Render chart
-  if(tl.length>0){
-    setTimeout(function(){
-      var ctx=document.getElementById('scChart');
-      if(ctx&&mvc)mvc.destroy();
-      if(ctx){
-        mvc=new Chart(ctx,{type:'line',data:{labels:rdays,datasets:[{label:'순위',data:rdata,borderColor:'var(--blue)',backgroundColor:'rgba(59,130,246,.1)',borderWidth:2,pointRadius:2,tension:.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#666',font:{size:9}},grid:{color:'rgba(255,255,255,.05)'}},y:{reverse:true,min:0.5,max:51.5,ticks:{color:'#666',font:{size:9}},grid:{color:'rgba(255,255,255,.05)'}}}}});
-      }
-    },100);
-  }
-}
-
-// Build developer datalist on load
-(function(){
-  var dl=document.getElementById('dl');
-  var seen={};var devs=[];G.forEach(function(g){if(!seen[g.company]){seen[g.company]=1;devs.push(g.company)}});
-  dl.innerHTML=devs.sort().map(function(d){return '<option value="'+d.replace(/"/g,'&quot;')+'">'}).join('');
-})();
 </script>
 </body></html>
