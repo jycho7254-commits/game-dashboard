@@ -65,7 +65,7 @@ td{padding:10px 12px;border-bottom:1px solid var(--border)}tr:hover td{backgroun
 <a onclick="showTab('nws',this)"><span>📰</span> 뉴스</a>
 </nav>
 <div class="mn">
-<div class="tb"><h1>한국 모바일 게임 대시보드</h1><div class="mt">2026-07-02 03:24</div></div>
+<div class="tb"><h1>한국 모바일 게임 대시보드</h1><div class="mt">2026-07-02 10:29</div></div>
 
 <div id="tab-rank" class="tc on">
 <div class="kps">
@@ -273,7 +273,8 @@ function renderSent(){
     if(d.top_posts&&d.top_posts.length){
       h+='<div style="margin-top:12px">';
       d.top_posts.slice(0,5).forEach(function(p){
-        h+='<div style="padding:8px;background:var(--bg2);border-radius:6px;margin-bottom:6px;font-size:12px"><span style="color:var(--t2)">['+(p.recommend||0)+'추]</span> '+p.title+'</div>';
+        var pl = p.url ? '<a href="'+p.url+'" target="_blank" style="color:var(--link);text-decoration:none">'+p.title+'</a>' : p.title;
+        h+='<div style="padding:8px;background:var(--bg2);border-radius:6px;margin-bottom:6px;font-size:12px"><span style="color:var(--t2)">['+(p.recommend||0)+'추]</span> '+pl+'</div>';
       });
       h+='</div>';
     }
